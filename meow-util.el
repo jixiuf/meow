@@ -735,8 +735,8 @@ NOT-REPEAT - do not use `isearch-repeat' even MATCH equals to last `isearch-stri
         ;; we call `isearch-lazy-highlight-new-loop' at the end
         ;; of function,so set `isearch-lazy-count' and `isearch-lazy-highlight'
         ;; to nil is costless.
-        (isearch-lazy-count nil)
-        (isearch-lazy-highlight nil))
+        (transient-mark transient-mark-mode)
+        mark)
     (if (not match)
         ;; if MATCH is nil, just call `isearch-repeat'
         (isearch-repeat (if reverse 'backward 'forward))
@@ -747,7 +747,19 @@ NOT-REPEAT - do not use `isearch-repeat' even MATCH equals to last `isearch-stri
        match
        (mapconcat 'isearch-text-char-description match "")))
     (isearch-update)
-    (isearch-done))
+    (if (not isearch-success)
+        (condition-case nil
+            (isearch-cancel)
+          (quit (message "Searching %s failed" isearch-string) nil))
+      (setq mark mark-active)
+      (setq mark-active t)
+      (setq transient-mark-mode t)
+      (isearch-done)
+      ;; reset after isearch-done
+      ;; isearch-done will push mark if the position changes. And we should not
+      ;; call it everytime after a search.
+      (setq transient-mark-mode transient-mark)
+      (setq mark-active mark)))
   ;; highlight after isearch-done
   ;; M-x:lazy-highlight-cleanup to cleanup highlight
   (when (and isearch-success
