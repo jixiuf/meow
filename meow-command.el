@@ -1382,6 +1382,7 @@ To search backward, use \\[negative-argument]."
                           (meow--direction-backward-p)
                         (not isearch-forward))))
         match region mark point)
+    (setq isearch-opoint (point))
     (when (region-active-p)
       (setq region (buffer-substring-no-properties
                     (region-beginning)(region-end)))
@@ -1419,6 +1420,7 @@ To search backward, use \\[negative-argument]."
          (text (meow--prompt-symbol-and-words
                 (if arg "Visit backward: " "Visit: ")
                 (point-min) (point-max))))
+    (deactivate-mark)
     (meow--search reverse text)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1680,6 +1682,7 @@ Use negative argument for backward application."
   (let ((isearch-wrap-pause nil)
         (isearch-state (isearch--get-state))
         (back (meow--with-negative-argument-p arg)))
+    (setq isearch-opoint (point))
     (meow--wrap-collapse-undo
       (while (meow--search back nil nil t)
         (thread-first
